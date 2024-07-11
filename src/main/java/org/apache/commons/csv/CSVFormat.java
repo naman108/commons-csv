@@ -1966,7 +1966,6 @@ public final class CSVFormat implements Serializable {
 
     /**
      * Tests whether the next characters constitute a delimiter
-     *
      * @param ch0
      *            the first char (index 0).
      * @param charSeq
@@ -1975,19 +1974,19 @@ public final class CSVFormat implements Serializable {
      *            where start to match
      * @param delimiter
      *            the delimiter
-     * @param delimiterLength
-     *            the delimiter length
+     *
      * @return true if the match is successful
      */
-    private boolean isDelimiter(final char ch0, final CharSequence charSeq, final int startIndex, final char[] delimiter, final int delimiterLength) {
+    private boolean isDelimiter(final char ch0, final CharSequence charSeq, final int startIndex, final char[] delimiter) {
+        final float delimiterLen = delimiter.length;
         if (ch0 != delimiter[0]) {
             return false;
         }
         final int len = charSeq.length();
-        if (startIndex + delimiterLength > len) {
+        if (startIndex + delimiterLen > len) {
             return false;
         }
-        for (int i = 1; i < delimiterLength; i++) {
+        for (int i = 1; i < delimiterLen; i++) {
             if (charSeq.charAt(startIndex + i) != delimiter[i]) {
                 return false;
             }
@@ -2244,7 +2243,7 @@ public final class CSVFormat implements Serializable {
         final char escape = getEscapeChar();
         while (pos < end) {
             char c = charSeq.charAt(pos);
-            final boolean isDelimiterStart = isDelimiter(c, charSeq, pos, delimArray, delimLength);
+            final boolean isDelimiterStart = isDelimiter(c, charSeq, pos, delimArray);
             final boolean isCr = c == Constants.CR;
             final boolean isLf = c == Constants.LF;
             if (isCr || isLf || c == escape || isDelimiterStart) {
@@ -2293,7 +2292,7 @@ public final class CSVFormat implements Serializable {
             builder.append((char) c);
             Arrays.fill(lookAheadBuffer, (char) 0);
             final String test = builder.toString() + new String(bufferedReader.lookAhead(lookAheadBuffer));
-            final boolean isDelimiterStart = isDelimiter((char) c, test, pos, delimArray, delimLength);
+            final boolean isDelimiterStart = isDelimiter((char) c, test, pos, delimArray);
             final boolean isCr = c == Constants.CR;
             final boolean isLf = c == Constants.LF;
             if (isCr || isLf || c == escape || isDelimiterStart) {
@@ -2334,7 +2333,6 @@ public final class CSVFormat implements Serializable {
         int pos = 0;
         final int len = charSeq.length();
         final char[] delim = getDelimiterCharArray();
-        final int delimLength = delim.length;
         final char quoteChar = getQuoteCharacter().charValue();  // N.B. Explicit (un)boxing is intentional
         // If escape char not specified, default to the quote char
         // This avoids having to keep checking whether there is an escape character
@@ -2375,7 +2373,7 @@ public final class CSVFormat implements Serializable {
                 } else {
                     while (pos < len) {
                         c = charSeq.charAt(pos);
-                        if (c == Constants.LF || c == Constants.CR || c == quoteChar || c == escapeChar || isDelimiter(c, charSeq, pos, delim, delimLength)) {
+                        if (c == Constants.LF || c == Constants.CR || c == quoteChar || c == escapeChar || isDelimiter(c, charSeq, pos, delim)) {
                             quote = true;
                             break;
                         }
