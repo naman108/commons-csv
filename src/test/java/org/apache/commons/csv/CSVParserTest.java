@@ -90,7 +90,7 @@ public class CSVParserTest {
     static private final String CSV_INPUT_HEADER_COMMENT = "# header comment" + CRLF + "A,B" + CRLF + "1,2" + CRLF;
 
     // CSV with a single line header and trailer comment
-    static private final String CSV_INPUT_HEADER_TRAILER_COMMENT = "# header comment" + CRLF + "A,B" + CRLF + "1,2" + CRLF + "# comment";
+    static private final String CSV_INPUT_HDR_TRAILER_COMMENT = "# header comment" + CRLF + "A,B" + CRLF + "1,2" + CRLF + "# comment";
 
     // CSV with a multi-line header and trailer comment
     static private final String CSV_INPUT_MULTILINE_HEADER_TRAILER_COMMENT = "# multi-line" + CRLF + "# header comment" + CRLF + "A,B" + CRLF + "1,2" + CRLF + "# multi-line" + CRLF + "# comment";
@@ -892,7 +892,7 @@ public class CSVParserTest {
 
     @Test
     public void testGetTrailerComment_HeaderTrailerComment1() throws IOException {
-        try (CSVParser parser = CSVParser.parse(CSV_INPUT_HEADER_TRAILER_COMMENT, FORMAT_AUTO_HEADER)) {
+        try (CSVParser parser = CSVParser.parse(CSV_INPUT_HDR_TRAILER_COMMENT, FORMAT_AUTO_HEADER)) {
             parser.getRecords();
             assertTrue(parser.hasTrailerComment());
             assertEquals("comment", parser.getTrailerComment());
@@ -901,7 +901,7 @@ public class CSVParserTest {
 
     @Test
     public void testGetTrailerComment_HeaderTrailerComment2() throws IOException {
-        try (CSVParser parser = CSVParser.parse(CSV_INPUT_HEADER_TRAILER_COMMENT, FORMAT_EXPLICIT_HEADER)) {
+        try (CSVParser parser = CSVParser.parse(CSV_INPUT_HDR_TRAILER_COMMENT, FORMAT_EXPLICIT_HEADER)) {
             parser.getRecords();
             assertTrue(parser.hasTrailerComment());
             assertEquals("comment", parser.getTrailerComment());
@@ -910,7 +910,7 @@ public class CSVParserTest {
 
     @Test
     public void testGetTrailerComment_HeaderTrailerComment3() throws IOException {
-        try (CSVParser parser = CSVParser.parse(CSV_INPUT_HEADER_TRAILER_COMMENT, FORMAT_EXPLICIT_HEADER_NOSKIP)) {
+        try (CSVParser parser = CSVParser.parse(CSV_INPUT_HDR_TRAILER_COMMENT, FORMAT_EXPLICIT_HEADER_NOSKIP)) {
             parser.getRecords();
             assertTrue(parser.hasTrailerComment());
             assertEquals("comment", parser.getTrailerComment());
