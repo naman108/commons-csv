@@ -38,6 +38,7 @@ import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.Parse;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -83,7 +84,7 @@ public class CSVRecordTest {
 
     @Test
     public void testCSVRecordNULLValues() throws IOException {
-        final CSVParser parser = CSVParser.parse("A,B\r\nONE,TWO", CSVFormat.DEFAULT.withHeader());
+        final CSVParser parser = Parse.parse("A,B\r\nONE,TWO", CSVFormat.DEFAULT.withHeader());
         final CSVRecord csvRecord = new CSVRecord(parser, null, null, 0L, 0L);
         assertEquals(0, csvRecord.size());
         assertThrows(IllegalArgumentException.class, () -> csvRecord.get("B"));
@@ -94,7 +95,7 @@ public class CSVRecordTest {
         final String csv = "A,A,B,B\n1,2,5,6\n";
         final CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().build();
 
-        try (final CSVParser parser = CSVParser.parse(csv, format)) {
+        try (final CSVParser parser = Parse.parse(csv, format)) {
             final CSVRecord record = parser.nextRecord();
 
             assertAll("Test that it gets the last instance of a column when there are duplicate headings",
@@ -109,7 +110,7 @@ public class CSVRecordTest {
         final String csv = "A,A,B,B\n1,2,5,6\n";
         final CSVFormat format = CSVFormat.DEFAULT.builder().setHeader().build();
 
-        try (final CSVParser parser = CSVParser.parse(csv, format)) {
+        try (final CSVParser parser = Parse.parse(csv, format)) {
             final CSVRecord record = parser.nextRecord();
             final Map<String, String> map = record.toMap();
 
@@ -260,7 +261,7 @@ public class CSVRecordTest {
     @Test
     public void testSerialization() throws IOException, ClassNotFoundException {
         final CSVRecord shortRec;
-        try (final CSVParser parser = CSVParser.parse("A,B\n#my comment\nOne,Two", CSVFormat.DEFAULT.withHeader().withCommentMarker('#'))) {
+        try (final CSVParser parser = Parse.parse("A,B\n#my comment\nOne,Two", CSVFormat.DEFAULT.withHeader().withCommentMarker('#'))) {
             shortRec = parser.iterator().next();
         }
         final ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -344,7 +345,7 @@ public class CSVRecordTest {
 
     @Test
     public void testToMapWithNoHeader() throws Exception {
-        try (final CSVParser parser = CSVParser.parse("a,b", CSVFormat.newFormat(','))) {
+        try (final CSVParser parser = Parse.parse("a,b", CSVFormat.newFormat(','))) {
             final CSVRecord shortRec = parser.iterator().next();
             final Map<String, String> map = shortRec.toMap();
             assertNotNull(map, "Map is not null.");
@@ -354,7 +355,7 @@ public class CSVRecordTest {
 
     @Test
     public void testToMapWithShortRecord() throws Exception {
-        try (final CSVParser parser = CSVParser.parse("a,b", CSVFormat.DEFAULT.withHeader("A", "B", "C"))) {
+        try (final CSVParser parser = Parse.parse("a,b", CSVFormat.DEFAULT.withHeader("A", "B", "C"))) {
             final CSVRecord shortRec = parser.iterator().next();
             shortRec.toMap();
         }

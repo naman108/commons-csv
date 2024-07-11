@@ -60,6 +60,7 @@ import java.util.Random;
 import java.util.Vector;
 import java.util.stream.Stream;
 
+import org.apache.commons.Parse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.output.NullOutputStream;
@@ -124,7 +125,7 @@ public class CSVPrinterTest {
         final String result = sw.toString();
         // System.out.println("### :" + printable(result));
 
-        try (final CSVParser parser = CSVParser.parse(result, format)) {
+        try (final CSVParser parser = Parse.parse(result, format)) {
             final List<CSVRecord> parseResult = parser.getRecords();
 
             final String[][] expected = lines.clone();
@@ -1358,10 +1359,10 @@ public class CSVPrinterTest {
         final CSVFormat format = CSVFormat.DEFAULT;
         final StringWriter sw = new StringWriter();
         try (final CSVPrinter printer = format.print(sw);
-                final CSVParser parser = CSVParser.parse(code, format)) {
+                final CSVParser parser = Parse.parse(code, format)) {
             printer.printRecords(parser);
         }
-        try (final CSVParser parser = CSVParser.parse(sw.toString(), format)) {
+        try (final CSVParser parser = Parse.parse(sw.toString(), format)) {
             final List<CSVRecord> records = parser.getRecords();
             assertFalse(records.isEmpty());
             Utils.compare("Fail", res, records);
@@ -1379,12 +1380,12 @@ public class CSVPrinterTest {
         final CSVFormat format = CSVFormat.DEFAULT;
         final StringWriter sw = new StringWriter();
         try (final CSVPrinter printer = format.print(sw);
-                final CSVParser parser = CSVParser.parse(code, format)) {
+                final CSVParser parser = Parse.parse(code, format)) {
             for (final CSVRecord record : parser) {
                 printer.printRecord(record);
             }
         }
-        try (final CSVParser parser = CSVParser.parse(sw.toString(), format)) {
+        try (final CSVParser parser = Parse.parse(sw.toString(), format)) {
             final List<CSVRecord> records = parser.getRecords();
             assertFalse(records.isEmpty());
             Utils.compare("Fail", res, records);
@@ -1402,10 +1403,10 @@ public class CSVPrinterTest {
         final CSVFormat format = CSVFormat.DEFAULT;
         final StringWriter sw = new StringWriter();
         try (final CSVPrinter printer = format.print(sw);
-                final CSVParser parser = CSVParser.parse(code, format)) {
+                final CSVParser parser = Parse.parse(code, format)) {
             printer.printRecords(parser.getRecords());
         }
-        try (final CSVParser parser = CSVParser.parse(sw.toString(), format)) {
+        try (final CSVParser parser = Parse.parse(sw.toString(), format)) {
             final List<CSVRecord> records = parser.getRecords();
             assertFalse(records.isEmpty());
             Utils.compare("Fail", res, records);
@@ -1555,12 +1556,12 @@ public class CSVPrinterTest {
         final CSVFormat format = CSVFormat.DEFAULT;
         final StringWriter sw = new StringWriter();
         try (final CSVPrinter printer = format.print(sw);
-                final CSVParser parser = CSVParser.parse(code, format)) {
+                final CSVParser parser = Parse.parse(code, format)) {
             for (final CSVRecord record : parser) {
                 printer.printRecord(record.stream());
             }
         }
-        try (final CSVParser parser = CSVParser.parse(sw.toString(), format)) {
+        try (final CSVParser parser = Parse.parse(sw.toString(), format)) {
             final List<CSVRecord> records = parser.getRecords();
             assertFalse(records.isEmpty());
             Utils.compare("Fail", res, records);
@@ -1803,7 +1804,7 @@ public class CSVPrinterTest {
     }
 
     private String[] toFirstRecordValues(final String expected, final CSVFormat format) throws IOException {
-        try (final CSVParser parser = CSVParser.parse(expected, format)) {
+        try (final CSVParser parser = Parse.parse(expected, format)) {
             return parser.getRecords().get(0).values();
         }
     }

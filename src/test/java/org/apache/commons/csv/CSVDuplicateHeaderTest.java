@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.Parse;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -320,7 +321,7 @@ public class CSVDuplicateHeaderTest {
                 .map(s -> s == null ? format.getNullString() : s)
                 .collect(Collectors.joining(format.getDelimiterString()));
         if (valid) {
-            try(CSVParser parser = CSVParser.parse(input, format)) {
+            try(CSVParser parser = Parse.parse(input, format)) {
                 // Parser ignores null headers
                 final List<String> expected =
                     Arrays.stream(headers)
@@ -329,7 +330,7 @@ public class CSVDuplicateHeaderTest {
                 Assertions.assertEquals(expected, parser.getHeaderNames(), "HeaderNames");
             }
         } else {
-            Assertions.assertThrows(IllegalArgumentException.class, () -> CSVParser.parse(input, format));
+            Assertions.assertThrows(IllegalArgumentException.class, () -> Parse.parse(input, format));
         }
     }
 }

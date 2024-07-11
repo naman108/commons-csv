@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.Parse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -293,11 +294,11 @@ public class PerformanceTest {
     }
 
     private static void testParsePath() throws Exception {
-        testParser("CSV-PATH", () -> CSVParser.parse(Files.newInputStream(Paths.get(BIG_FILE.toURI())), StandardCharsets.ISO_8859_1, format));
+        testParser("CSV-PATH", () -> Parse.parse(Files.newInputStream(Paths.get(BIG_FILE.toURI())), StandardCharsets.ISO_8859_1, format));
     }
 
     private static void testParsePathDoubleBuffering() throws Exception {
-        testParser("CSV-PATH-DB", () -> CSVParser.parse(Files.newBufferedReader(Paths.get(BIG_FILE.toURI()), StandardCharsets.ISO_8859_1), format));
+        testParser("CSV-PATH-DB", () -> Parse.parse(Files.newBufferedReader(Paths.get(BIG_FILE.toURI()), StandardCharsets.ISO_8859_1), format));
     }
 
     private static void testParser(final String msg, final CSVParserFactory fac) throws Exception {
@@ -314,7 +315,7 @@ public class PerformanceTest {
     }
 
     private static void testParseURL() throws Exception {
-        testParser("CSV-URL", () -> CSVParser.parse(BIG_FILE.toURI().toURL(), StandardCharsets.ISO_8859_1, format));
+        testParser("CSV-URL", () -> Parse.parse(BIG_FILE.toURI().toURL(), StandardCharsets.ISO_8859_1, format));
     }
 
     private static void testReadBigFile(final boolean split) throws Exception {
