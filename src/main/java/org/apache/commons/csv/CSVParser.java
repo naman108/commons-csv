@@ -25,7 +25,6 @@ import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -183,7 +182,7 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
     /**
      * Header information based on name and position.
      */
-    private static final class Headers {
+    static final class Headers {
 
         /**
          * Header column positions (0-based)
@@ -201,7 +200,7 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
         }
     }
 
-    private String headerComment;
+    String headerComment;
 
     private String trailerComment;
 
@@ -280,7 +279,7 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
         this.format = format.copy();
         this.lexer = new Lexer(format, new ExtendedBufferedReader(reader));
         this.csvRecordIterator = new CSVRecordIterator();
-        this.headers = createHeaders();
+        this.headers = format.createHeaders(this);
         this.characterOffset = characterOffset;
         this.recordNumber = recordNumber - 1;
     }
@@ -304,78 +303,10 @@ public final class CSVParser implements Iterable<CSVRecord>, Closeable {
         lexer.close();
     }
 
-    private Map<String, Integer> createEmptyHeaderMap() {
+    Map<String, Integer> createEmptyHeaderMap() {
         return format.getIgnoreHeaderCase() ?
                 new TreeMap<>(String.CASE_INSENSITIVE_ORDER) :
                 new LinkedHashMap<>();
-    }
-
-    /**
-     * Creates the name to index mapping if the format defines a header.
-     *
-     * @return null if the format has no header.
-     * @throws IOException if there is a problem reading the header or skipping the first record
-     */
-    private Headers createHeaders() throws IOException {
-        Map<String, Integer> hdrMap = null;
-        List<String> headerNames = null;
-        final String[] formatHeader = format.getHeader();
-        if (formatHeader != null) {
-            hdrMap = createEmptyHeaderMap();
-            String[] headerRecord = null;
-            if (formatHeader.length == 0) {
-                // read the header from the first line of the file
-                final CSVRecord nextRecord = nextRecord();
-                if (nextRecord != null) {
-                    headerRecord = nextRecord.values();
-                    headerComment = nextRecord.getComment();
-                }
-            } else {
-                if (format.getSkipHeaderRecord()) {
-                    final CSVRecord nextRecord = nextRecord();
-                    if (nextRecord != null) {
-                        headerComment = nextRecord.getComment();
-                    }
-                }
-                headerRecord = formatHeader;
-            }
-
-            // build the name to index mappings
-            if (headerRecord != null) {
-                // Track an occurrence of a null, empty or blank header.
-                boolean observedMissing = false;
-                for (int i = 0; i < headerRecord.length; i++) {
-                    final String header = headerRecord[i];
-                    final boolean blankHeader = CSVFormat.isBlank(header);
-                    if (blankHeader && !format.getAllowMissingColumnNames()) {
-                        throw new IllegalArgumentException(
-                            "A header name is missing in " + Arrays.toString(headerRecord));
-                    }
-
-                    final boolean containsHeader = blankHeader ? observedMissing : hdrMap.containsKey(header);
-                    final DuplicateHeaderMode headerMode = format.getDuplicateHeaderMode();
-                    final boolean duplicatesAllowed = headerMode == DuplicateHeaderMode.ALLOW_ALL;
-                    final boolean emptyDuplicatesAllowed = headerMode == DuplicateHeaderMode.ALLOW_EMPTY;
-
-                    if (containsHeader && !duplicatesAllowed && !(blankHeader && emptyDuplicatesAllowed)) {
-                        throw new IllegalArgumentException(
-                            String.format(
-                                "The header contains a duplicate name: \"%s\" in %s. If this is valid then use CSVFormat.Builder.setDuplicateHeaderMode().",
-                                header, Arrays.toString(headerRecord)));
-                    }
-                    observedMissing |= blankHeader;
-                    if (header != null) {
-                        hdrMap.put(header, Integer.valueOf(i)); // N.B. Explicit (un)boxing is intentional
-                        if (headerNames == null) {
-                            headerNames = new ArrayList<>(headerRecord.length);
-                        }
-                        headerNames.add(header);
-                    }
-                }
-            }
-        }
-        // Make header names Collection immutable
-        return new Headers(hdrMap, headerNames == null ? Collections.emptyList() : Collections.unmodifiableList(headerNames));
     }
 
     /**

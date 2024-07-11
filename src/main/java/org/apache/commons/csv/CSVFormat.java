@@ -33,12 +33,17 @@ import java.nio.file.Path;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.codec.binary.Base64OutputStream;
+import org.apache.commons.csv.CSVParser.Headers;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.function.Uncheck;
 import org.apache.commons.io.output.AppendableOutputStream;
@@ -3107,5 +3112,74 @@ public final class CSVFormat implements Serializable {
     @Deprecated
     public CSVFormat withTrim(final boolean trim) {
         return builder().setTrim(trim).build();
+    }
+
+    /**
+     * Creates the name to index mapping if the format defines a header.
+     *
+     * @return null if the format has no header.
+     * @param csvParser TODO
+     * @throws IOException if there is a problem reading the header or skipping the first record
+     */
+    Headers createHeaders(CSVParser csvParser) throws IOException {
+        Map<String, Integer> hdrMap = null;
+        List<String> headerNames = null;
+        final String[] formatHeader = getHeader();
+        if (formatHeader != null) {
+            hdrMap = csvParser.createEmptyHeaderMap();
+            String[] headerRecord = null;
+            if (formatHeader.length == 0) {
+                // read the header from the first line of the file
+                final CSVRecord nextRecord = csvParser.nextRecord();
+                if (nextRecord != null) {
+                    headerRecord = nextRecord.values();
+                    csvParser.headerComment = nextRecord.getComment();
+                }
+            } else {
+                if (getSkipHeaderRecord()) {
+                    final CSVRecord nextRecord = csvParser.nextRecord();
+                    if (nextRecord != null) {
+                        csvParser.headerComment = nextRecord.getComment();
+                    }
+                }
+                headerRecord = formatHeader;
+            }
+    
+            // build the name to index mappings
+            if (headerRecord != null) {
+                // Track an occurrence of a null, empty or blank header.
+                boolean observedMissing = false;
+                for (int i = 0; i < headerRecord.length; i++) {
+                    final String header = headerRecord[i];
+                    final boolean blankHeader = CSVFormat.isBlank(header);
+                    if (blankHeader && !getAllowMissingColumnNames()) {
+                        throw new IllegalArgumentException(
+                            "A header name is missing in " + Arrays.toString(headerRecord));
+                    }
+    
+                    final boolean containsHeader = blankHeader ? observedMissing : hdrMap.containsKey(header);
+                    final DuplicateHeaderMode headerMode = getDuplicateHeaderMode();
+                    final boolean duplicatesAllowed = headerMode == DuplicateHeaderMode.ALLOW_ALL;
+                    final boolean emptyDuplicatesAllowed = headerMode == DuplicateHeaderMode.ALLOW_EMPTY;
+    
+                    if (containsHeader && !duplicatesAllowed && !(blankHeader && emptyDuplicatesAllowed)) {
+                        throw new IllegalArgumentException(
+                            String.format(
+                                "The header contains a duplicate name: \"%s\" in %s. If this is valid then use CSVFormat.Builder.setDuplicateHeaderMode().",
+                                header, Arrays.toString(headerRecord)));
+                    }
+                    observedMissing |= blankHeader;
+                    if (header != null) {
+                        hdrMap.put(header, Integer.valueOf(i)); // N.B. Explicit (un)boxing is intentional
+                        if (headerNames == null) {
+                            headerNames = new ArrayList<>(headerRecord.length);
+                        }
+                        headerNames.add(header);
+                    }
+                }
+            }
+        }
+        // Make header names Collection immutable
+        return new Headers(hdrMap, headerNames == null ? Collections.emptyList() : Collections.unmodifiableList(headerNames));
     }
 }
